@@ -71,13 +71,13 @@ export default function ResumePage() {
     adjustFontSize()
     setDownloading(true)
     try {
-      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
-        import('html2canvas'),
-        import('jspdf'),
-      ])
+      const html2canvas = (await import('html2canvas')).default
+      const { jsPDF } = await import('jspdf')
+
       const canvas = await html2canvas(printRef.current, {
         scale: 2,
         useCORS: true,
+        allowTaint: true,
         logging: false,
         backgroundColor: '#ffffff',
       })
@@ -89,7 +89,8 @@ export default function ResumePage() {
       const name = resumeData?.contact?.name?.trim() || 'resume'
       const safe = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
       pdf.save(`${safe}-resume.pdf`)
-    } catch {
+    } catch (err) {
+      console.error('[PDF download]', err)
       toast.error('Failed to generate PDF. Please try again.')
     } finally {
       setDownloading(false)
