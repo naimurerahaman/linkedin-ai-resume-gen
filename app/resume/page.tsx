@@ -71,67 +71,22 @@ export default function ResumePage() {
     adjustFontSize()
     setDownloading(true)
     try {
-      const html2canvas = (await import('html2canvas')).default
+      // html-to-image uses getComputedStyle (returns rgb values) instead of parsing
+      // raw CSS stylesheets, so it never chokes on Tailwind v4's oklch()/lab() colors.
+      const { toJpeg } = await import('html-to-image')
       const { jsPDF } = await import('jspdf')
 
-      const sourceEl = printRef.current
-
-      const canvas = await html2canvas(sourceEl, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        logging: false,
+      const dataUrl = await toJpeg(printRef.current, {
+        quality: 0.95,
+        pixelRatio: 2,
         backgroundColor: '#ffffff',
-        onclone: (_doc, clonedEl) => {
-          // Tailwind v4 uses oklch()/lab() in CSS variables. html2canvas parses
-          // stylesheets directly and throws on these modern color functions.
-          // Fix: read browser-resolved rgb() values via getComputedStyle on the
-          // original elements, convert anything non-rgb via a 1px canvas, then
-          // apply as inline styles on the clone so html2canvas sees only rgb.
-          const helperCanvas = document.createElement('canvas')
-          helperCanvas.width = helperCanvas.height = 1
-          const ctx = helperCanvas.getContext('2d')!
-
-          function toRgb(color: string): string {
-            if (!color || color === 'transparent') return color
-            if (color.startsWith('rgb')) return color
-            try {
-              ctx.clearRect(0, 0, 1, 1)
-              ctx.fillStyle = color
-              ctx.fillRect(0, 0, 1, 1)
-              const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data
-              if (a === 0) return 'transparent'
-              return a < 255
-                ? `rgba(${r},${g},${b},${(a / 255).toFixed(3)})`
-                : `rgb(${r},${g},${b})`
-            } catch { return color }
-          }
-
-          const COLOR_PROPS = [
-            'color', 'background-color',
-            'border-top-color', 'border-right-color',
-            'border-bottom-color', 'border-left-color',
-          ]
-
-          const origEls = Array.from(sourceEl.querySelectorAll<HTMLElement>('*'))
-          const cloneEls = Array.from(clonedEl.querySelectorAll<HTMLElement>('*'))
-          origEls.forEach((orig, i) => {
-            const clone = cloneEls[i]
-            if (!clone) return
-            const cs = window.getComputedStyle(orig)
-            for (const prop of COLOR_PROPS) {
-              const val = cs.getPropertyValue(prop)
-              if (val) clone.style.setProperty(prop, toRgb(val))
-            }
-          })
-        },
+        skipFonts: false,
       })
 
-      const imgData = canvas.toDataURL('image/jpeg', 0.95)
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
       const w = pdf.internal.pageSize.getWidth()
       const h = pdf.internal.pageSize.getHeight()
-      pdf.addImage(imgData, 'JPEG', 0, 0, w, h)
+      pdf.addImage(dataUrl, 'JPEG', 0, 0, w, h)
       const name = resumeData?.contact?.name?.trim() || 'resume'
       const safe = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
       pdf.save(`${safe}-resume.pdf`)
