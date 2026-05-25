@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { FileText, Sparkles, ChevronDown, ChevronUp, Zap, Shield, Target } from 'lucide-react'
+import { FileText, Sparkles, ChevronDown, ChevronUp, Zap, Shield, Target, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { TemplateThumbnail } from '@/components/TemplateThumbnail'
@@ -223,42 +223,47 @@ export default function Home() {
             </div>
 
             {/* Generate button */}
-            <Button
+            <button
+              type="button"
               onClick={handleGenerate}
               disabled={!canGenerate}
-              size="lg"
-              className={`w-full gap-2 text-base h-12 transition-all duration-200 ${
-                canGenerate
-                  ? 'hover:shadow-lg hover:shadow-blue-200 hover:-translate-y-0.5 active:translate-y-0 active:shadow-md'
-                  : ''
-              }`}
+              className={`
+                relative w-full h-14 rounded-xl font-semibold text-base
+                overflow-hidden group transition-all duration-300 outline-none
+                focus-visible:ring-4 focus-visible:ring-blue-400/50
+                ${canGenerate
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white cursor-pointer hover:shadow-2xl hover:shadow-blue-400/40 hover:-translate-y-1 active:translate-y-0 active:shadow-md'
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                }
+              `}
             >
-              {loading ? (
-                <>
-                  <svg className="animate-spin size-4" viewBox="0 0 24 24" fill="none">
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v8H4z"
-                    />
-                  </svg>
-                  Generating your resume...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="size-4" />
-                  Generate Resume
-                </>
+              {/* Shimmer sweep on hover */}
+              {canGenerate && (
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-20deg]"
+                />
               )}
-            </Button>
+
+              {/* Label */}
+              <span className="relative flex items-center justify-center gap-2.5">
+                {loading ? (
+                  <>
+                    <svg className="animate-spin size-5" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                    </svg>
+                    Generating your resume…
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="size-5" />
+                    Generate Resume
+                    <ArrowRight className="size-5 transition-transform duration-200 group-hover:translate-x-1" />
+                  </>
+                )}
+              </span>
+            </button>
           </div>
 
           <p className="text-center text-xs text-gray-400 mt-5 pb-2">
