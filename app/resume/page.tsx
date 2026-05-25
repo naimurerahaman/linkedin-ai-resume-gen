@@ -36,6 +36,7 @@ export default function ResumePage() {
   const [tab, setTab] = useState<'design' | 'edit'>('design')
   const [emailOpen, setEmailOpen] = useState(false)
   const [regenerating, setRegenerating] = useState(false)
+  const [downloading, setDownloading] = useState(false)
   const printRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -65,9 +66,34 @@ export default function ResumePage() {
     el.style.fontSize = `${next}px`
   }
 
-  function handlePrint() {
+  async function handleDownload() {
+    if (!printRef.current || downloading) return
     adjustFontSize()
-    setTimeout(() => window.print(), 50)
+    setDownloading(true)
+    try {
+      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf'),
+      ])
+      const canvas = await html2canvas(printRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+      })
+      const imgData = canvas.toDataURL('image/jpeg', 0.95)
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+      const w = pdf.internal.pageSize.getWidth()
+      const h = pdf.internal.pageSize.getHeight()
+      pdf.addImage(imgData, 'JPEG', 0, 0, w, h)
+      const name = resumeData?.contact?.name?.trim() || 'resume'
+      const safe = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+      pdf.save(`${safe}-resume.pdf`)
+    } catch {
+      toast.error('Failed to generate PDF. Please try again.')
+    } finally {
+      setDownloading(false)
+    }
   }
 
   async function handleRegenerate() {
@@ -164,11 +190,19 @@ export default function ResumePage() {
             </Button>
             <Button
               size="sm"
-              onClick={handlePrint}
+              onClick={handleDownload}
+              disabled={downloading}
               className="gap-1.5 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
             >
-              <Download className="size-4" />
-              Download PDF
+              {downloading ? (
+                <svg className="animate-spin size-4" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+              ) : (
+                <Download className="size-4" />
+              )}
+              {downloading ? 'Preparing…' : 'Download PDF'}
             </Button>
           </div>
         </div>
@@ -186,7 +220,7 @@ export default function ResumePage() {
             <TemplateComponent data={resumeData} />
           </div>
           <p className="text-xs text-gray-400 text-center mt-3 no-print">
-            Click &ldquo;Download PDF&rdquo; → browser print dialog → Save as PDF.
+            Click &ldquo;Download PDF&rdquo; to save your resume directly.
           </p>
         </div>
 
@@ -245,12 +279,20 @@ export default function ResumePage() {
                   {/* Actions */}
                   <div className="pt-3 border-t border-gray-100 space-y-2">
                     <Button
-                      onClick={handlePrint}
+                      onClick={handleDownload}
+                      disabled={downloading}
                       className="w-full gap-2 text-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
                       size="sm"
                     >
-                      <Download className="size-3.5" />
-                      Download PDF
+                      {downloading ? (
+                        <svg className="animate-spin size-3.5" viewBox="0 0 24 24" fill="none">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                        </svg>
+                      ) : (
+                        <Download className="size-3.5" />
+                      )}
+                      {downloading ? 'Preparing…' : 'Download PDF'}
                     </Button>
                     {outreachEmail && (
                       <Button
