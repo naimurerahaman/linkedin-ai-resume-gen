@@ -2,12 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Download, Mail, RefreshCw, ArrowLeft, Check, Pencil, Eye } from 'lucide-react'
+import { Download, Mail, RefreshCw, ArrowLeft, Check, Pencil, Eye, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ClassicTemplate } from '@/components/templates/ClassicTemplate'
 import { ModernTemplate } from '@/components/templates/ModernTemplate'
 import { MinimalTemplate } from '@/components/templates/MinimalTemplate'
+import { TemplateThumbnail } from '@/components/TemplateThumbnail'
 import { EmailModal } from '@/components/EmailModal'
 import { EditPanel } from '@/components/EditPanel'
 import { useResume } from '@/context/ResumeContext'
@@ -120,19 +121,33 @@ export default function ResumePage() {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Top bar */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10 no-print">
+      <header className="bg-white/90 backdrop-blur-md border-b border-gray-200 sticky top-0 z-10 no-print">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <button
             onClick={() => router.push('/')}
-            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors"
+            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors duration-200 group"
           >
-            <ArrowLeft className="size-4" />
+            <ArrowLeft className="size-4 group-hover:-translate-x-0.5 transition-transform duration-200" />
             Back
           </button>
 
+          <div className="flex items-center gap-2.5">
+            <div className="size-6 bg-blue-600 rounded-md flex items-center justify-center">
+              <FileText className="size-3.5 text-white" />
+            </div>
+            <span className="font-bold text-gray-900 text-sm tracking-tight hidden sm:block">
+              ResumeAI
+            </span>
+          </div>
+
           <div className="flex items-center gap-2">
             {outreachEmail && (
-              <Button variant="outline" size="sm" onClick={() => setEmailOpen(true)} className="gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setEmailOpen(true)}
+                className="gap-1.5 hover:border-blue-300 hover:text-blue-600 transition-all duration-200"
+              >
                 <Mail className="size-4" />
                 View Email
               </Button>
@@ -142,12 +157,16 @@ export default function ResumePage() {
               size="sm"
               onClick={handleRegenerate}
               disabled={regenerating}
-              className="gap-1.5"
+              className="gap-1.5 hover:border-blue-300 hover:text-blue-600 transition-all duration-200"
             >
               <RefreshCw className={`size-4 ${regenerating ? 'animate-spin' : ''}`} />
               Regenerate
             </Button>
-            <Button size="sm" onClick={handlePrint} className="gap-1.5">
+            <Button
+              size="sm"
+              onClick={handlePrint}
+              className="gap-1.5 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
+            >
               <Download className="size-4" />
               Download PDF
             </Button>
@@ -161,7 +180,7 @@ export default function ResumePage() {
           <div
             id="resume-print-area"
             ref={printRef}
-            className="bg-white shadow-lg rounded-lg overflow-hidden"
+            className="bg-white shadow-xl rounded-xl overflow-hidden ring-1 ring-gray-200"
             style={{ minHeight: '1056px' }}
           >
             <TemplateComponent data={resumeData} />
@@ -174,7 +193,7 @@ export default function ResumePage() {
         {/* Sidebar */}
         <div className="w-80 shrink-0 no-print">
           <div
-            className="bg-white rounded-xl border border-gray-200 sticky top-20 flex flex-col"
+            className="bg-white rounded-xl border border-gray-200 sticky top-20 flex flex-col shadow-sm"
             style={{ maxHeight: 'calc(100vh - 96px)' }}
           >
             {/* Tabs */}
@@ -199,22 +218,25 @@ export default function ResumePage() {
                 <div className="space-y-4">
                   {/* Template switcher */}
                   <div>
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2.5">
                       Template
                     </p>
-                    <div className="space-y-1">
+                    <div className="space-y-2">
                       {TEMPLATES.map((t) => (
                         <button
                           key={t.id}
                           onClick={() => setTemplate(t.id)}
-                          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all ${
+                          className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-all duration-200 group ${
                             template === t.id
-                              ? 'bg-blue-50 text-blue-700 font-medium'
-                              : 'text-gray-600 hover:bg-gray-50'
+                              ? 'bg-blue-50 text-blue-700 font-medium ring-1 ring-blue-200'
+                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                           }`}
                         >
-                          {t.label}
-                          {template === t.id && <Check className="size-3.5" />}
+                          <div className="w-12 h-8 rounded overflow-hidden border border-gray-200 shrink-0 group-hover:border-blue-200 transition-colors duration-200">
+                            <TemplateThumbnail id={t.id} className="h-full scale-[0.85] origin-top-left w-[118%]" />
+                          </div>
+                          <span className="flex-1 text-left">{t.label}</span>
+                          {template === t.id && <Check className="size-3.5 shrink-0" />}
                         </button>
                       ))}
                     </div>
@@ -222,7 +244,11 @@ export default function ResumePage() {
 
                   {/* Actions */}
                   <div className="pt-3 border-t border-gray-100 space-y-2">
-                    <Button onClick={handlePrint} className="w-full gap-2 text-sm" size="sm">
+                    <Button
+                      onClick={handlePrint}
+                      className="w-full gap-2 text-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
+                      size="sm"
+                    >
                       <Download className="size-3.5" />
                       Download PDF
                     </Button>
@@ -230,7 +256,7 @@ export default function ResumePage() {
                       <Button
                         variant="outline"
                         onClick={() => setEmailOpen(true)}
-                        className="w-full gap-2 text-sm"
+                        className="w-full gap-2 text-sm hover:border-blue-300 hover:text-blue-600 transition-all duration-200"
                         size="sm"
                       >
                         <Mail className="size-3.5" />
@@ -241,7 +267,7 @@ export default function ResumePage() {
                       variant="outline"
                       onClick={handleRegenerate}
                       disabled={regenerating}
-                      className="w-full gap-2 text-sm"
+                      className="w-full gap-2 text-sm hover:border-blue-300 hover:text-blue-600 transition-all duration-200"
                       size="sm"
                     >
                       <RefreshCw className={`size-3.5 ${regenerating ? 'animate-spin' : ''}`} />
@@ -283,10 +309,10 @@ function TabButton({
   return (
     <button
       onClick={onClick}
-      className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium transition-colors border-b-2 ${
+      className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium transition-all duration-200 border-b-2 ${
         active
           ? 'text-blue-600 border-blue-500'
-          : 'text-gray-500 hover:text-gray-700 border-transparent'
+          : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50/50 border-transparent'
       }`}
     >
       {icon}
