@@ -267,10 +267,12 @@ export default function Home() {
           </div>
 
           <p className="text-center text-xs text-gray-400 mt-5 pb-2">
-            Your data is sent to Groq AI for processing only — nothing is stored on our servers.{' '}
+            Your data is sent to Groq AI for processing only — nothing is stored on our servers. <br></br>
+            This website is developed by MD Naimure Rahaman Emon .
             <a href="/privacy" className="underline hover:text-gray-600 transition-colors duration-150">
               Privacy policy
             </a>
+            
           </p>
         </div>
       </div>

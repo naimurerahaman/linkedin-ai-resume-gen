@@ -117,7 +117,9 @@ export default function PrivacyPage() {
           <Section title="Contact">
             <p className="text-gray-600 leading-relaxed">
               If you have questions about this privacy policy, please open an issue or contact us
-              via the repository. We will respond promptly.
+              via the repository. We will respond promptly. Or mail us at <a href="mailto:mdnaimurerahamanemon@gmail.com" className="text-blue-600 hover:text-blue-700 underline transition-colors duration-150">
+                mdnaimurerahamanemon@gmail.com
+              </a>
             </p>
           </Section>
         </div>
